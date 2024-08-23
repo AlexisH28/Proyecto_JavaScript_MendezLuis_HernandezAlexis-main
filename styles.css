@@ -1,46 +1,79 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css');
+
+/* Estilos generales */
 body {
-    background: url('images/star-wars-background.jpg') no-repeat center center fixed;
-    background-size: cover;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #000;
     color: #fff;
-    font-family: 'Star Wars', sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
 }
 
 header {
-    background: rgba(0, 0, 0, 0.7);
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-h1 {
-    color: #f5c518;
-    font-size: 3rem;
+.logo {
+    width: 150px;
 }
 
-#searchInput {
-    margin-bottom: 15px;
+.busqueda {
+    margin: 20px 0;
 }
 
-#searchType {
-    width: 100%;
+#input-busqueda {
+    padding: 10px;
+    width: 60%;
+    max-width: 400px;
+    border-radius: 5px;
+    border: none;
 }
 
-.card {
-    background: rgba(0, 0, 0, 0.8);
-    border: 1px solid #f5c518;
-    border-radius: 10px;
-    color: #fff;
+#boton-buscar {
+    padding: 10px 20px;
+    margin-left: 10px;
+    background-color: #ffc107;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
-.card-title {
-    color: #f5c518;
+#resultados {
+    margin: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
-.card-body {
-    font-size: 0.9rem;
+/* Estilos para tarjetas de resultados */
+.tarjeta {
+    background-color: #222;
+    margin: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    width: 250px;
+    text-align: left;
 }
 
-.card-img-top {
-    height: 200px;
-    object-fit: cover;
+.tarjeta img {
+    max-width: 100%;
+    border-radius: 5px;
+}
+
+.tarjeta h3 {
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #input-busqueda {
+        width: 80%;
+    }
+    
+    .tarjeta {
+        width: 100%;
+    }
 }
