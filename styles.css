@@ -1,0 +1,46 @@
+body {
+    background: url('images/star-wars-background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #fff;
+    font-family: 'Star Wars', sans-serif;
+}
+
+header {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+    color: #f5c518;
+    font-size: 3rem;
+}
+
+#searchInput {
+    margin-bottom: 15px;
+}
+
+#searchType {
+    width: 100%;
+}
+
+.card {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #f5c518;
+    border-radius: 10px;
+    color: #fff;
+}
+
+.card-title {
+    color: #f5c518;
+}
+
+.card-body {
+    font-size: 0.9rem;
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
