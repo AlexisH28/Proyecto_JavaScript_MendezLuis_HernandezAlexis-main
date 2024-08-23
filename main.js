@@ -1,80 +1,208 @@
 document.addEventListener('DOMContentLoaded', () => {
     const apiUrl = 'https://swapi.py4e.com/api/';
-    const searchInput = document.getElementById('searchInput');
-    const searchType = document.getElementById('searchType');
-    const resultsContainer = document.getElementById('results');
+    const resultadosContenedor = document.getElementById('resultados');
+    const filtrosSecundariosContenedor = document.getElementById('filtros-secundarios');
+    const modal = document.getElementById('modal');
+    const modalTitulo = document.getElementById('modal-titulo');
+    const modalImagen = document.getElementById('modal-imagen');
+    const modalDetalles = document.getElementById('modal-detalles');
+    const cerrarModal = document.getElementById('cerrar-modal');
+    const barraBusqueda = document.getElementById('barra-busqueda');
+    let paginaActual = 1;
+    let categoriaActual = '';
+    let datosActuales = [];
+    let datosCompletos = {};
 
-    const fetchData = async (endpoint, query) => {
+    // Función para obtener datos de la API con paginación
+    const obtenerDatos = async (categoria, pagina = 1) => {
         try {
-            const response = await fetch(`${apiUrl}${endpoint}/?search=${query}`);
-            return await response.json();
+            const url = `${apiUrl}${categoria}/?page=${pagina}`;
+            const respuesta = await fetch(url);
+            if (!respuesta.ok) throw new Error(`HTTP error! status: ${respuesta.status}`);
+            return await respuesta.json();
         } catch (error) {
-            console.error('Error fetching data:', error);
-            return { results: [] };
+            mostrarErrorModal(`Error al obtener los datos: ${error.message}`);
+            return null;
         }
     };
 
-    const getImageUrl = (type, id) => {
-        // Base URL for the Star Wars Visual Guide images
+    // Función para obtener todos los datos de una categoría
+    const obtenerTodosLosDatos = async (categoria) => {
+        let datosCompletos = [];
+        let pagina = 1;
+        let datos;
+        do {
+            datos = await obtenerDatos(categoria, pagina);
+            if (datos && datos.results) {
+                datosCompletos = datosCompletos.concat(datos.results);
+                pagina++;
+            }
+        } while (datos && datos.next);
+        return datosCompletos;
+    };
+
+    // Función para obtener la URL de la imagen
+    const obtenerUrlImagen = (categoria, id) => {
         const baseUrl = 'https://starwars-visualguide.com/assets/img/';
-        switch (type) {
-            case 'people':
-                return `${baseUrl}characters/${id}.jpg`;
-            case 'planets':
-                return `${baseUrl}planets/${id}.jpg`;
-            case 'starships':
-                return `${baseUrl}starships/${id}.jpg`;
-            case 'vehicles':
-                return `${baseUrl}vehicles/${id}.jpg`;
-            case 'species':
-                return `${baseUrl}species/${id}.jpg`;
-            default:
-                return 'https://via.placeholder.com/300?text=No+Image';
-        }
+        const categorias = {
+            'people': 'characters',
+            'planets': 'planets',
+            'starships': 'starships',
+            'vehicles': 'vehicles',
+            'species': 'species'
+        };
+        return `${baseUrl}${categorias[categoria] || 'characters'}/${id}.jpg`;
     };
 
-    const renderResults = (data, type) => {
-        if (!data.results.length) {
-            resultsContainer.innerHTML = `<p class="text-center">No results found for ${type}.</p>`;
+    // Función para mostrar resultados
+    const mostrarResultados = (datos, categoria) => {
+        if (!datos || datos.length === 0) {
+            resultadosContenedor.innerHTML = `<p>No se encontraron resultados para ${categoria}.</p>`;
             return;
         }
 
-        resultsContainer.innerHTML = data.results.map(item => {
-            const id = item.url.split('/').filter(Boolean).pop(); // Extract ID from URL
+        datosActuales = datos;
+        resultadosContenedor.innerHTML = datos.map(item => {
+            const id = item.url.split('/').filter(Boolean).pop();
+            const nombre = item.name || item.title;
+            const imagenUrl = obtenerUrlImagen(categoria, id);
+
             return `
-                <div class="col-md-4">
-                    <div class="card">
-                        <img src="${getImageUrl(type, id)}" class="card-img-top" alt="${item.name}">
-                        <div class="card-body">
-                            <h5 class="card-title">${item.name}</h5>
-                            ${type === 'people' ? `<p class="card-text">Height: ${item.height} cm</p><p class="card-text">Mass: ${item.mass} kg</p><p class="card-text">Birth Year: ${item.birth_year}</p>` : ''}
-                            ${type === 'planets' ? `<p class="card-text">Climate: ${item.climate}</p><p class="card-text">Terrain: ${item.terrain}</p><p class="card-text">Population: ${item.population}</p>` : ''}
-                            ${type === 'starships' ? `<p class="card-text">Model: ${item.model}</p><p class="card-text">Manufacturer: ${item.manufacturer}</p><p class="card-text">Cost: ${item.cost_in_credits} credits</p>` : ''}
-                            ${type === 'vehicles' ? `<p class="card-text">Model: ${item.model}</p><p class="card-text">Manufacturer: ${item.manufacturer}</p><p class="card-text">Cost: ${item.cost_in_credits} credits</p>` : ''}
-                            ${type === 'species' ? `<p class="card-text">Classification: ${item.classification}</p><p class="card-text">Language: ${item.language}</p><p class="card-text">Average Lifespan: ${item.average_lifespan}</p>` : ''}
-                        </div>
+                <div class="card" data-id="${id}" data-categoria="${categoria}">
+                    <div class="imagen-contenedor">
+                        <img src="${imagenUrl}" alt="${nombre}" onError="this.src='https://via.placeholder.com/300?text=Imagen+No+Disponible';">
                     </div>
-                </div>`;
+                    <h3>${nombre}</h3>
+                </div>
+            `;
         }).join('');
+
+        const botonAnterior = document.getElementById('boton-anterior');
+        const botonSiguiente = document.getElementById('boton-siguiente');
+
+        botonAnterior.style.display = datos.previous ? 'block' : 'none';
+        botonSiguiente.style.display = datos.next ? 'block' : 'none';
     };
 
-    searchInput.addEventListener('input', async (event) => {
-        const query = event.target.value.toLowerCase();
-        const type = searchType.value;
-        if (query.length > 2) {
-            const data = await fetchData(type, query);
-            renderResults(data, type);
-        } else {
-            resultsContainer.innerHTML = '';
+    // Función para manejar los botones de filtro
+    const manejarFiltro = async (categoria) => {
+        categoriaActual = categoria;
+        datosCompletos[categoria] = await obtenerTodosLosDatos(categoria);
+        mostrarResultados(datosCompletos[categoria], categoria);
+        mostrarFiltrosSecundarios(categoria);
+    };
+
+    // Función para mostrar filtros secundarios
+    const mostrarFiltrosSecundarios = (categoria) => {
+        filtrosSecundariosContenedor.innerHTML = '';
+        const datos = datosCompletos[categoria];
+
+        if (!datos || datos.length === 0) return;
+
+        const filtros = {};
+        datos.forEach(item => {
+            if (categoria === 'people' && item.gender) {
+                filtros[item.gender] = (filtros[item.gender] || 0) + 1;
+            }
+            if (categoria === 'planets' && item.climate) {
+                filtros[item.climate] = (filtros[item.climate] || 0) + 1;
+            }
+        });
+
+        for (const [valor, cantidad] of Object.entries(filtros)) {
+            const botonFiltro = document.createElement('button');
+            botonFiltro.textContent = `${valor} (${cantidad})`;
+            botonFiltro.classList.add('btn-filtro-secundario');
+            botonFiltro.setAttribute('data-filtro', valor);
+            botonFiltro.setAttribute('data-categoria', categoria);
+            filtrosSecundariosContenedor.appendChild(botonFiltro);
+        }
+
+        document.querySelectorAll('.btn-filtro-secundario').forEach(boton => {
+            boton.addEventListener('click', () => {
+                const categoria = boton.getAttribute('data-categoria');
+                const filtro = boton.getAttribute('data-filtro');
+                manejarFiltroSecundario(categoria, filtro);
+            });
+        });
+    };
+
+    // Función para manejar el filtro secundario
+    const manejarFiltroSecundario = (categoria, filtro) => {
+        const datosFiltrados = datosCompletos[categoria].filter(item => {
+            if (categoria === 'people') return item.gender === filtro;
+            if (categoria === 'planets') return item.climate === filtro;
+            return false;
+        });
+        mostrarResultados(datosFiltrados, categoria);
+    };
+
+    // Función para mostrar el modal
+    const mostrarModal = (id, categoria) => {
+        const item = datosActuales.find(item => item.url.includes(id));
+        if (!item) return;
+
+        modalTitulo.textContent = item.name || item.title;
+        modalImagen.innerHTML = `<img src="${obtenerUrlImagen(categoria, id)}" alt="${item.name || item.title}">`;
+
+        const especificaciones = Object.entries(item).map(([clave, valor]) => {
+            return `<li><strong>${clave}:</strong> ${valor}</li>`;
+        }).join('');
+        modalDetalles.innerHTML = especificaciones;
+
+        modal.style.display = 'block';
+    };
+
+    // Función para mostrar mensaje de error en el modal
+    const mostrarErrorModal = (mensaje) => {
+        modalTitulo.textContent = 'Error';
+        modalImagen.innerHTML = '';
+        modalDetalles.innerHTML = `<p>${mensaje}</p>`;
+        modal.style.display = 'block';
+    };
+
+    // Evento para cerrar el modal
+    cerrarModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    // Evento para manejar clic en los resultados
+    resultadosContenedor.addEventListener('click', (event) => {
+        const card = event.target.closest('.card');
+        if (card) {
+            const id = card.getAttribute('data-id');
+            const categoria = card.getAttribute('data-categoria');
+            mostrarModal(id, categoria);
         }
     });
 
-    searchType.addEventListener('change', async () => {
-        const query = searchInput.value.toLowerCase();
-        const type = searchType.value;
-        if (query.length > 2) {
-            const data = await fetchData(type, query);
-            renderResults(data, type);
-        }
+    // Evento para manejar los filtros de categoría
+    document.querySelectorAll('.btn-filtro').forEach(boton => {
+        boton.addEventListener('click', () => {
+            const categoria = boton.getAttribute('data-categoria');
+            manejarFiltro(categoria);
+        });
+    });
+
+    // Evento para manejar la barra de búsqueda
+    barraBusqueda.addEventListener('input', () => {
+        const busqueda = barraBusqueda.value.toLowerCase();
+        const resultadosFiltrados = datosActuales.filter(item => 
+            (item.name || item.title).toLowerCase().includes(busqueda)
+        );
+        mostrarResultados(resultadosFiltrados, categoriaActual);
+    });
+
+    // Eventos de paginación
+    document.getElementById('boton-anterior').addEventListener('click', async () => {
+        paginaActual--;
+        const datos = await obtenerDatos(categoriaActual, paginaActual);
+        mostrarResultados(datos, categoriaActual);
+    });
+
+    document.getElementById('boton-siguiente').addEventListener('click', async () => {
+        paginaActual++;
+        const datos = await obtenerDatos(categoriaActual, paginaActual);
+        mostrarResultados(datos, categoriaActual);
     });
 });

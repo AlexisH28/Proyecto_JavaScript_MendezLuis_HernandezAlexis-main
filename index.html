@@ -1,29 +1,73 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscador Star Wars</title>
-    <link rel="stylesheet" href="estilos.css">
+    <title>Buscador de Star Wars</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image" href="/images/png-transparent-anakin-skywalker-palpatine-computer-icons-darth-star-wars-logo-anakin-skywalker-vader-thumbnail.png" sizes="150x150">
 </head>
+
 <body>
-    
-    <header>
-        <img src="assets/logo.png" alt="Logo Star Wars" class="logo">
-        <h1>Buscador de Star Wars</h1>
-    </header>
+    <div class="contenedor">
+        <h1 class="titulo">Buscador de Star Wars</h1>
 
-   
-    <section class="busqueda">
-        <input type="text" id="input-busqueda" placeholder="Buscar...">
-        <button id="boton-buscar">Buscar</button>
-    </section>
+        <div class="botones-filtro">
+            <button class="btn-filtro" data-categoria="people">
+                <img src="/images/icono-personaje.png" alt="Personajes">
+                <span>Personajes</span>
+            </button>
+            <button class="btn-filtro" data-categoria="planets">
+                <img src="/images/icono-planeta.png" alt="Planetas">
+                <span>Planetas</span>
+            </button>
+            <button class="btn-filtro" data-categoria="starships">
+                <img src="/images/icono-nave.png" alt="Naves">
+                <span>Naves</span>
+            </button>
+            <button class="btn-filtro" data-categoria="vehicles">
+                <img src="/images/icono-vehículo.png" alt="Vehículos">
+                <span>Vehículos</span>
+            </button>
+            <button class="btn-filtro" data-categoria="species">
+                <img src="/images/icono-especie.png" alt="Especies">
+                <span>Especies</span>
+            </button>
+        </div>
 
-    
-    <section id="resultados" class="resultados">
+        <!-- Filtros específicos -->
+        <div id="filtros-secundarios" class="botones-filtro"></div>
         
-    </section>
+        <!-- Barra de Búsqueda -->
+        <div class="barra-busqueda">
+            <input type="text" id="barra-busqueda" placeholder="Buscar...">
+        </div>
+        
+        <!-- Resultados -->
+        <div id="resultados" class="contenedor-resultados"></div>
+
+        <!-- Navegación de Páginas -->
+        <div id="paginacion" class="paginacion">
+            <!-- Botones de navegación por páginas -->
+            <button id="boton-anterior" class="btn-paginacion" style="display: none;">Página Anterior</button>
+            <button id="boton-siguiente" class="btn-paginacion" style="display: none;">Siguiente Página</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-contenido">
+            <span id="cerrar-modal" class="cerrar">&times;</span>
+            <h2 id="modal-titulo"></h2>
+            <div id="modal-imagen" class="modal-imagen"></div>
+            <div id="modal-detalles" class="modal-detalles">
+                <ul id="modal-especificaciones" class="especificaciones-lista"></ul>
+            </div>
+        </div>
+    </div>
 
     <script src="main.js"></script>
 </body>
+
 </html>
